@@ -19,4 +19,13 @@
     <ProjectReference Include="..\CrossSolar\CrossSolar.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="System.Web.Http">
+      <HintPath>..\CrossSolar\bin\Debug\System.Web.Http.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Http.Cors">
+      <HintPath>..\CrossSolar\bin\Debug\System.Web.Http.Cors.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

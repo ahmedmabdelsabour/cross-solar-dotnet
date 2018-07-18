@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using CrossSolar.Domain;
 using CrossSolar.Models;
 using CrossSolar.Repository;
@@ -10,17 +11,20 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CrossSolar.Controllers
 {
-    [Route("panel")]
+    [Route("api/panel")]
     public class AnalyticsController : Controller
     {
         private readonly IAnalyticsRepository _analyticsRepository;
 
         private readonly IPanelRepository _panelRepository;
 
-        public AnalyticsController(IAnalyticsRepository analyticsRepository, IPanelRepository panelRepository)
+        private readonly IOneHourElectricityRepository _oneHourElectricityRepository;
+
+        public AnalyticsController(IAnalyticsRepository analyticsRepository, IPanelRepository panelRepository, IOneHourElectricityRepository oneHourElectricityRepository)
         {
             _analyticsRepository = analyticsRepository;
             _panelRepository = panelRepository;
+            _oneHourElectricityRepository = oneHourElectricityRepository;
         }
 
         // GET panel/XXXX1111YYYY2222/analytics
@@ -52,7 +56,39 @@ namespace CrossSolar.Controllers
         [HttpGet("{panelId}/[controller]/day")]
         public async Task<IActionResult> DayResults([FromRoute] string panelId)
         {
-            var result = new List<OneDayElectricityModel>();
+            List < OneDayElectricityModel > lstOneDay= new List<OneDayElectricityModel>();
+           
+            var query =(from oneHoureElec in _oneHourElectricityRepository.Query()
+                         where oneHoureElec.PanelId == panelId
+                         group oneHoureElec by new { oneHoureElec.PanelId, oneHoureElec.DateTime.Date } into g
+                         select new
+                         {
+                             panelId = g.Key.PanelId,
+                             DateT = g.Key.Date,
+                             SUM = g.Sum(oh => oh.KiloWatt),
+                             Minimum = g.Min(m => m.KiloWatt),
+                             Maximum = g.Max(ma => ma.KiloWatt),
+                             Average = g.Average(av => av.KiloWatt),
+                         }).ToList();
+            if (query!=null)
+            {
+                
+                foreach (var item in query)
+                {
+                    lstOneDay.Add(new OneDayElectricityModel
+                    {
+                        panelId = item.panelId,
+                        DateTime = item.DateT,
+                        Sum = item.SUM,
+                        Minimum = item.Minimum,
+                        Maximum = item.Maximum,
+                        Average = item.Average
+                    });
+                }
+            }
+
+
+            var result = lstOneDay;
 
             return Ok(result);
         }
