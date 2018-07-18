@@ -72,7 +72,7 @@ namespace CrossSolar.Controllers
                          }).ToList();
             if (query!=null)
             {
-                
+                 
                 foreach (var item in query)
                 {
                     lstOneDay.Add(new OneDayElectricityModel
